@@ -7,13 +7,13 @@ data class RegistrosLavadoConDetalles(
     @Embedded val registroLavado: RegistroLavado,
 
     @Relation(
-        parentColumn = "vehiculo_Id",
+        parentColumn = "vehiculo_id",
         entityColumn = "id"
     )
     val vehiculo: Vehiculos,
 
     @Relation(
-        parentColumn = "servicio_Id",
+        parentColumn = "servicio_id",
         entityColumn = "id"
     )
     val servicio: Servicios

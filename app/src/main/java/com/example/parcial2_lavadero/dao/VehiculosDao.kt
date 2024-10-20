@@ -34,4 +34,7 @@ interface VehiculosDao {
     // Obtener vehículos por cliente_id
     @Query("SELECT * FROM vehiculos WHERE cliente_id = :clienteId")
     suspend fun obtenerVehiculosPorCliente(clienteId: Int): List<Vehiculos>
+
+    @Query("SELECT id FROM vehiculos WHERE placa = :placa LIMIT 1")
+    suspend fun obtenerVehiculoIdPorPlaca(placa: String): Int?
 }

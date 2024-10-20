@@ -2,6 +2,7 @@ package com.example.parcial2_lavadero.repository
 
 import com.example.parcial2_lavadero.dao.RegistroLavadoDao
 import com.example.parcial2_lavadero.model.RegistroLavado
+import com.example.parcial2_lavadero.model.RegistrosLavadoConDetalles
 
 class RegistroLavadoRepository(private val registroLavadoDao: RegistroLavadoDao) {
 
@@ -32,4 +33,8 @@ class RegistroLavadoRepository(private val registroLavadoDao: RegistroLavadoDao)
     suspend fun obtenerRegistrosLavadoPorServicio(servicioId: Int): List<RegistroLavado> {
         return registroLavadoDao.obtenerRegistrosLavadoPorServicio(servicioId)
     }
+    suspend fun obtenerRegistrosLavadoConDetalles(): List<RegistrosLavadoConDetalles> {
+        return registroLavadoDao.obtenerRegistrosLavadoConDetalles()
+    }
+
 }

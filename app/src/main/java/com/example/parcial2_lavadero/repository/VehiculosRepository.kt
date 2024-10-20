@@ -28,4 +28,6 @@ class VehiculosRepository(private val vehiculosDao: VehiculosDao) {
     suspend fun obtenerVehiculosPorCliente(clienteId: Int): List<Vehiculos> {
         return vehiculosDao.obtenerVehiculosPorCliente(clienteId)
     }
+
+
 }
