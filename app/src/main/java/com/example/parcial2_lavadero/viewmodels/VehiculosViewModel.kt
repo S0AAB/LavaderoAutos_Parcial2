@@ -12,7 +12,10 @@ class VehiculosViewModel(private val vehiculosRepository: VehiculosRepository) :
     // MutableLiveData para la lista de vehículos
     private val _allVehiculos = MutableLiveData<List<Vehiculos>>()
     val allVehiculos: LiveData<List<Vehiculos>> get() = _allVehiculos
+    init {
 
+        cargarTodosLosVehiculos()
+    }
     // Método para cargar todos los vehículos
     fun cargarTodosLosVehiculos() {
         viewModelScope.launch {
