@@ -14,148 +14,169 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.parcial2_lavadero.model.RegistroLavado
-import com.example.parcial2_lavadero.model.RegistrosLavadoConDetalles
 import com.example.parcial2_lavadero.viewmodels.RegistroLavadoViewModel
-
+import java.text.SimpleDateFormat
+import java.util.*
 @Composable
 fun RegistroLavadoScreen(viewModel: RegistroLavadoViewModel) {
     var fechaLavado by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
     var horaFin by remember { mutableStateOf("") }
     var precioTotal by remember { mutableStateOf("") }
-    var vehiculoId by remember { mutableStateOf("") } // Cambiar a ID en lugar de placa
+    var vehiculoId by remember { mutableStateOf("") }
     var servicioId by remember { mutableStateOf("") }
-    var selectedRegistro by remember { mutableStateOf<RegistrosLavadoConDetalles?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var selectedRegistroLavado by remember { mutableStateOf<RegistroLavado?>(null) }
 
-    // Cargar la lista de registros de lavado con detalles
-    val registrosLavadoConDetalles by viewModel.registrosLavadoConDetalles.observeAsState(emptyList())
-
-    LaunchedEffect(Unit) {
-        viewModel.cargarRegistrosLavadoConDetalles()
-    }
+    // Obtener la lista de registros de lavado desde el ViewModel
+    val allRegistrosLavado by viewModel.allRegistrosLavado.observeAsState(emptyList())
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Lista de registros de lavado con detalles
-        LazyColumn {
-            items(registrosLavadoConDetalles) { registroConDetalles ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            selectedRegistro = registroConDetalles
-                            // Cargar los datos del registro seleccionado para editar
-                            fechaLavado = registroConDetalles.registroLavado.fechaLavado.toString()
-                            horaInicio = registroConDetalles.registroLavado.horaInicio
-                            horaFin = registroConDetalles.registroLavado.horaFin
-                            precioTotal = registroConDetalles.registroLavado.precioTotal.toString()
-                            vehiculoId = registroConDetalles.registroLavado.vehiculo_id.toString() // Cambiado a ID
-                            servicioId = registroConDetalles.registroLavado.servicio_id.toString()
-                        }
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Fecha: ${registroConDetalles.registroLavado.fechaLavado} - Vehículo ID: ${registroConDetalles.registroLavado.vehiculo_id} - Precio: ${registroConDetalles.registroLavado.precioTotal}")
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = { viewModel.deleteRegistroLavado(registroConDetalles.registroLavado) }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Eliminar")
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campos para agregar o editar un registro de lavado
-        TextField(
-            value = fechaLavado,
-            onValueChange = { fechaLavado = it },
-            label = { Text("Fecha de Lavado (timestamp)") }
-        )
-        TextField(
-            value = horaInicio,
-            onValueChange = { horaInicio = it },
-            label = { Text("Hora Inicio (HH:MM)") }
-        )
-        TextField(
-            value = horaFin,
-            onValueChange = { horaFin = it },
-            label = { Text("Hora Fin (HH:MM)") }
-        )
-        TextField(
-            value = precioTotal,
-            onValueChange = { precioTotal = it },
-            label = { Text("Precio Total") }
-        )
-        TextField(
-            value = vehiculoId,
-            onValueChange = { vehiculoId = it },
-            label = { Text("ID del Vehículo") } // Cambiar a ID
-        )
-        TextField(
-            value = servicioId,
-            onValueChange = { servicioId = it },
-            label = { Text("ID Servicio") }
-        )
+        TextField(value = fechaLavado, onValueChange = { fechaLavado = it }, label = { Text("Fecha (YYYY-MM-DD)") })
+        TextField(value = horaInicio, onValueChange = { horaInicio = it }, label = { Text("Hora Inicio (HH:MM)") })
+        TextField(value = horaFin, onValueChange = { horaFin = it }, label = { Text("Hora Fin (HH:MM)") })
+        TextField(value = precioTotal, onValueChange = { precioTotal = it }, label = { Text("Precio Total") })
+        TextField(value = vehiculoId, onValueChange = { vehiculoId = it }, label = { Text("ID Vehículo") })
+        TextField(value = servicioId, onValueChange = { servicioId = it }, label = { Text("ID Servicio") })
 
         // Mostrar mensaje de error si es necesario
         if (errorMessage.isNotEmpty()) {
             Text(text = errorMessage, color = Color.Red)
         }
 
+        // Mostrar mensaje de éxito
+        if (isSuccess) {
+            Text(text = "Registro de lavado guardado exitosamente", color = Color.Green)
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para guardar o actualizar el registro
         Button(onClick = {
             // Validar entradas antes de proceder
             if (fechaLavado.isEmpty() || horaInicio.isEmpty() || horaFin.isEmpty() || precioTotal.isEmpty() || vehiculoId.isEmpty() || servicioId.isEmpty()) {
                 errorMessage = "Por favor, complete todos los campos."
+                isSuccess = false
             } else {
-                errorMessage = "" // Limpiar mensaje de error
+                errorMessage = ""
+                val vehiculoIdValue = vehiculoId.toIntOrNull()
+                val servicioIdValue = servicioId.toIntOrNull()
+                val precioTotalValue = precioTotal.toFloatOrNull()
+                val fechaLavadoValue = fechaLavado.toLongOrNull()
 
-                // Modificar la creación o actualización del registro
-                val registro = selectedRegistro?.registroLavado?.copy(
-                    fechaLavado = fechaLavado.toLongOrNull() ?: 0L,
-                    horaInicio = horaInicio,
-                    horaFin = horaFin,
-                    precioTotal = precioTotal.toFloatOrNull() ?: 0f,
-                    vehiculo_id = vehiculoId.toIntOrNull() ?: 0, // Usar ID directamente
-                    servicio_id = servicioId.toIntOrNull() ?: 0
-                ) ?: RegistroLavado(
-                    fechaLavado = fechaLavado.toLongOrNull() ?: 0L,
-                    horaInicio = horaInicio,
-                    horaFin = horaFin,
-                    precioTotal = precioTotal.toFloatOrNull() ?: 0f,
-                    vehiculo_id = vehiculoId.toIntOrNull() ?: 0, // Usar ID directamente
-                    servicio_id = servicioId.toIntOrNull() ?: 0
-                )
-
-                if (selectedRegistro == null) {
-                    // Si no hay un registro seleccionado, se crea uno nuevo
-                    viewModel.addRegistroLavado(registro)
+                if (vehiculoIdValue == null || servicioIdValue == null || precioTotalValue == null || fechaLavadoValue == null) {
+                    errorMessage = "Por favor, ingrese valores válidos."
+                    isSuccess = false
                 } else {
-                    // Si hay un registro seleccionado, se actualiza
-                    viewModel.updateRegistroLavado(registro)
-                    selectedRegistro = null
-                }
+                    // Lógica para guardar el registro de lavado
+                    val registroLavado = selectedRegistroLavado?.copy(
+                        fechaLavado = fechaLavadoValue,
+                        horaInicio = horaInicio,
+                        horaFin = horaFin,
+                        precioTotal = precioTotalValue,
+                        vehiculo_id = vehiculoIdValue,
+                        servicio_id = servicioIdValue
+                    ) ?: RegistroLavado(
+                        fechaLavado = fechaLavadoValue,
+                        horaInicio = horaInicio,
+                        horaFin = horaFin,
+                        precioTotal = precioTotalValue,
+                        vehiculo_id = vehiculoIdValue,
+                        servicio_id = servicioIdValue
+                    )
 
-                // Limpiar campos después de guardar
+                    if (selectedRegistroLavado == null) {
+                        viewModel.addRegistroLavado(registroLavado)
+                    } else {
+                        viewModel.updateRegistroLavado(registroLavado)
+                    }
+
+                    // Limpiar campos después de guardar o actualizar
+                    fechaLavado = ""
+                    horaInicio = ""
+                    horaFin = ""
+                    precioTotal = ""
+                    vehiculoId = ""
+                    servicioId = ""
+                    isSuccess = true
+                    selectedRegistroLavado = null
+                }
+            }
+        }) {
+            Text(if (selectedRegistroLavado == null) "Guardar Registro" else "Actualizar Registro")
+        }
+
+        // Botón para cancelar la edición
+        if (selectedRegistroLavado != null) {
+            Button(onClick = {
+                // Limpiar campos y reiniciar selección
                 fechaLavado = ""
                 horaInicio = ""
                 horaFin = ""
                 precioTotal = ""
                 vehiculoId = ""
                 servicioId = ""
+                selectedRegistroLavado = null
+            }) {
+                Text("Cancelar")
             }
-        }) {
-            Text(if (selectedRegistro == null) "Guardar Registro de Lavado" else "Actualizar Registro de Lavado")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Listar todos los registros de lavado
+        Text(text = "Lista de Registros de Lavado", style = MaterialTheme.typography.titleMedium)
+        LazyColumn {
+            items(allRegistrosLavado) { registro ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            // Al hacer clic, llenar los campos con la información del registro de lavado para editarlo
+                            fechaLavado = registro.fechaLavado.toString()
+                            horaInicio = registro.horaInicio
+                            horaFin = registro.horaFin
+                            precioTotal = registro.precioTotal.toString()
+                            vehiculoId = registro.vehiculo_id.toString()
+                            servicioId = registro.servicio_id.toString()
+                            selectedRegistroLavado = registro
+                        },
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "ID: ${registro.id} Fecha: ${registro.fechaLavado}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "Hora: ${registro.horaInicio} - ${registro.horaFin}", style = MaterialTheme.typography.bodySmall)
+                            Text(text = "Precio: $${registro.precioTotal}", style = MaterialTheme.typography.bodySmall)
+                            Text(text = "ID vehiculo: ${registro.vehiculo_id} ID servicio:${registro.servicio_id}", style = MaterialTheme.typography.bodySmall)
+
+                        }
+
+                        IconButton(onClick = {
+                            viewModel.deleteRegistroLavado(registro)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
-

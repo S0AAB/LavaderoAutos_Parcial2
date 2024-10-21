@@ -154,10 +154,11 @@ fun VehiculosScreen(viewModel: VehiculosViewModel) {
                         Column(
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(text = "${vehiculo.marca} ${vehiculo.modelo}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "ID:${vehiculo.id} ${vehiculo.marca} ${vehiculo.modelo}", style = MaterialTheme.typography.bodyMedium)
                             Text(text = "Placa: ${vehiculo.placa}", style = MaterialTheme.typography.bodySmall)
                             Text(text = "Color: ${vehiculo.color}", style = MaterialTheme.typography.bodySmall)
                             Text(text = "Tipo: ${vehiculo.tipo}", style = MaterialTheme.typography.bodySmall)
+                            Text(text = "ID Cliente: ${vehiculo.cliente_id}", style = MaterialTheme.typography.bodySmall)
                         }
 
                         IconButton(onClick = {

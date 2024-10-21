@@ -117,7 +117,7 @@ fun ServiciosScreen(viewModel: ServiciosViewModel) {
                         Column(
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(text = servicio.nombre, style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "ID:${servicio.id} ${servicio.nombre}", style = MaterialTheme.typography.bodyMedium)
                             Text(text = "Precio: ${servicio.precio}", style = MaterialTheme.typography.bodySmall)
                         }
 

@@ -15,6 +15,10 @@ class RegistroLavadoViewModel(private val registroLavadoRepository: RegistroLava
     private val _allRegistrosLavado = MutableLiveData<List<RegistroLavado>>()
     val allRegistrosLavado: LiveData<List<RegistroLavado>> get() = _allRegistrosLavado
 
+    init {
+
+        cargarTodosLosRegistrosLavado()
+    }
     // Método para cargar todos los registros de lavado
     fun cargarTodosLosRegistrosLavado() {
         viewModelScope.launch {
